@@ -6,3 +6,9 @@ Real example of RESTful Service using Kotlin, Ktor, Kodein, Arrow-Kt, and Expose
 ### Web Framework
 - [Ktor.io](https://ktor.io/)
 - [CIO Engine](https://ktor.io/docs/engines.html#dependencies)
+
+### DI Framework
+- [kodein](https://kodein.org/)
+
+**Why?**
+- [Koin vs Kodein - DI with Kotlin](https://www.kotlindevelopment.com/koin-vs-kodein/)
