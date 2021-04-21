@@ -58,7 +58,22 @@ dependencies {
     implementation "mysql:mysql-connector-java:$mysql_version"
 
     implementation "org.jetbrains.exposed:exposed:$exposed_version"
+    implementation "org.jetbrains.exposed:exposed-java-time:$exposed_time_version"
 
-    // Tests Ktor
+    // Tests
     testImplementation "io.ktor:ktor-server-tests:$ktor_version"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiter_version"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:$jupiter_version"
+
+    // Tests Database
+    testImplementation "org.testcontainers:testcontainers:$testcontainers_version"
+    testImplementation "org.testcontainers:mysql:$testcontainers_version"
+    testImplementation "org.testcontainers:junit-jupiter:$testcontainers_version"
+
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$jupiter_version"
+}
+
+test {
+    useJUnitPlatform()
 }

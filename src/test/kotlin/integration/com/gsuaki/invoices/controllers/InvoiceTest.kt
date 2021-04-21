@@ -10,9 +10,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import kotlin.random.Random
-import kotlin.test.Test
-import kotlin.test.assertEquals
 
 class InvoiceTest : BaseConfig() {
 
@@ -40,8 +40,10 @@ class InvoiceTest : BaseConfig() {
   @Test
   fun `test getOne when ID is not present should return unprocessable`() =
     withTestApplication {
+      // given
+      val ownerId = Random(123).nextInt(from = 10, until = 1000)
       // when
-      val call = handleRequest(HttpMethod.Get, "/invoices/") { json() }
+      val call = handleRequest(HttpMethod.Get, "/invoices/?owner.id=$ownerId") { json() }
 
       // then
       with(call) {
@@ -54,8 +56,9 @@ class InvoiceTest : BaseConfig() {
     withTestApplication {
       //given
       val id = Random(123).nextInt(from = 10, until = 1000)
+      val ownerId = Random(123).nextInt(from = 10, until = 1000)
       // when
-      val call = handleRequest(HttpMethod.Get, "/invoices/$id") { json() }
+      val call = handleRequest(HttpMethod.Get, "/invoices/$id?owner.id=$ownerId") { json() }
 
       // then
       with(call) {
@@ -67,10 +70,10 @@ class InvoiceTest : BaseConfig() {
   fun `test getOne when ID found should return OK`() =
     withTestApplication {
       //given
-      val id = createInvoice(this)
+      val invoice = createInvoice(this)
 
       // when
-      val call = handleRequest(HttpMethod.Get, "/invoices/$id") { json() }
+      val call = handleRequest(HttpMethod.Get, "/invoices/${invoice.id}?owner.id=${invoice.ownerId}") { json() }
 
       // then
       with(call) {
@@ -99,11 +102,11 @@ class InvoiceTest : BaseConfig() {
       }
     }
 
-  private fun createInvoice(app: TestApplicationEngine): Long {
+  private fun createInvoice(app: TestApplicationEngine): Invoice {
     return app.handleRequest(HttpMethod.Post, "/invoices") {
       json()
       setBody(Json.writeValueAsString(InvoiceInput(ownerId = 1239L)))
     }
-      .let { Json.readValue(it.response.byteContent!!, Invoice::class.java).id }
+      .let { Json.readValue(it.response.byteContent!!, Invoice::class.java) }
   }
 }

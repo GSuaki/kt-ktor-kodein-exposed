@@ -6,4 +6,9 @@ import io.ktor.server.cio.EngineMain
 
 fun main(args: Array<String>): Unit = EngineMain.main(args)
 
-fun Application.start(dev: Boolean = false) = configure(dev)
+fun Application.start() {
+  val env = environment.config.propertyOrNull("ktor.environment")
+    ?.getString() ?: "dev"
+
+  configure(profile = env)
+}

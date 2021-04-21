@@ -1,12 +1,10 @@
 package com.gsuaki.invoices
 
 import com.gsuaki.invoices.controllers.InvoicesController
-import com.gsuaki.invoices.controllers.input.InvoiceInput
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.request.receive
 import io.ktor.request.uri
 import io.ktor.response.header
 import io.ktor.response.respond
@@ -24,33 +22,15 @@ fun Route.ping() {
 
 fun Route.invoices(controller: InvoicesController) {
   route("/invoices") {
-    get {
-      call.respond(controller.getAll())
-    }
+    get { controller.getAll(call) }
 
-    get("/{id}") {
-      runCatching { call.parameters["id"]?.toLong() }.getOrNull()
-        ?.let { controller.getOne(it) }
-        ?.fold({ call.respond(HttpStatusCode.InternalServerError, it) }) { invoice ->
-          invoice
-            ?.let { call.respond(HttpStatusCode.OK, it) }
-            ?: call.respond(HttpStatusCode.NotFound)
-        }
-        ?: call.respond(HttpStatusCode.UnprocessableEntity)
-    }
+    get("/{id}") { controller.getOne(call) }
 
-    post {
-      call.receive<InvoiceInput>()
-        .let { controller.insert(it) }
-        .fold(
-          { call.respond(HttpStatusCode.InternalServerError, it) },
-          { call.created(it.toString(), it) }
-        )
-    }
+    post { controller.insert(call) }
   }
 }
 
-private suspend fun ApplicationCall.created(resourceId: String, body: Any) {
+suspend fun ApplicationCall.created(resourceId: String, body: Any) {
   response.status(HttpStatusCode.Created)
   response.header("Location", "${request.uri}/$resourceId")
 

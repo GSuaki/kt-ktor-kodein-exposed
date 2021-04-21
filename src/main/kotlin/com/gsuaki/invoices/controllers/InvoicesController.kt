@@ -1,33 +1,41 @@
 package com.gsuaki.invoices.controllers
 
-import arrow.core.Either
 import com.gsuaki.invoices.controllers.input.InvoiceInput
-import com.gsuaki.invoices.domain.Invoice
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.atomic.AtomicLong
+import com.gsuaki.invoices.controllers.output.ApiError
+import com.gsuaki.invoices.created
+import com.gsuaki.invoices.services.InvoiceService
+import io.ktor.application.ApplicationCall
+import io.ktor.http.HttpStatusCode
+import io.ktor.request.receive
+import io.ktor.response.respond
+import io.ktor.util.getOrFail
 
-class InvoicesController {
+class InvoicesController(
+  private val service: InvoiceService
+) {
 
-  fun getAll(): List<Invoice> {
-    return runCatching { INVOICES }
-      .getOrElse { emptyList() }
+  suspend fun getAll(call: ApplicationCall) {
+    call.respond(service.getAll())
   }
 
-  fun getOne(id: Long): Either<Throwable, Invoice?> {
-    return Either.catch {
-      INVOICES.find { it.id == id }
-    }
+  suspend fun getOne(call: ApplicationCall) {
+    val id = call.parameters.getOrFail<Long>("id")
+    val ownerId = call.parameters.getOrFail<Long>("owner.id")
+
+    service.getOne(id, ownerId)
+      .fold({ call.respond(HttpStatusCode.InternalServerError, ApiError(it)) }) { invoice ->
+        invoice
+          ?.let { call.respond(HttpStatusCode.OK, it) }
+          ?: call.respond(HttpStatusCode.NotFound)
+      }
   }
 
-  fun insert(input: InvoiceInput): Either<Throwable, Invoice> {
-    return Either.catch {
-      Invoice(id = COUNTER.incrementAndGet(), ownerId = input.ownerId)
-        .also { INVOICES.add(it) }
-    }
-  }
-
-  companion object {
-    val COUNTER = AtomicLong(0)
-    val INVOICES = CopyOnWriteArrayList<Invoice>()
+  suspend fun insert(call: ApplicationCall) {
+    call.receive<InvoiceInput>()
+      .let { service.insert(it) }
+      .fold(
+        { call.respond(HttpStatusCode.InternalServerError, it) },
+        { call.created(it.toString(), it) }
+      )
   }
 }

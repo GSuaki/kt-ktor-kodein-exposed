@@ -7,16 +7,20 @@ import com.gsuaki.invoices.ping
 import io.ktor.application.Application
 import io.ktor.application.install
 import io.ktor.features.ContentNegotiation
+import io.ktor.features.StatusPages
 import io.ktor.jackson.jackson
 import io.ktor.routing.Routing
+import org.kodein.di.instance
 import org.kodein.di.newInstance
 
-fun Application.configure(dev: Boolean = false) {
+fun Application.configure(profile: String = "dev") {
   contentNegotiation()
-  routing(dev = dev)
+  statusPage()
+  database(profile = profile)
+  routing(profile = profile)
 }
 
-private fun Application.contentNegotiation() {
+fun Application.contentNegotiation() {
   install(ContentNegotiation) {
     jackson {
       setUpMapper()
@@ -24,12 +28,22 @@ private fun Application.contentNegotiation() {
   }
 }
 
-private fun Application.routing(dev: Boolean = false) {
+fun Application.database(profile: String = "dev") {
+  installMySQL(profile = profile)
+}
 
-  val invoicesController by injection.newInstance { InvoicesController() }
+fun Application.routing(profile: String = "dev") {
+
+  val invoicesController by injection.newInstance { InvoicesController(instance()) }
 
   install(Routing) {
     ping()
     invoices(invoicesController)
+  }
+}
+
+fun Application.statusPage() {
+  install(StatusPages) {
+    errorHandler()
   }
 }

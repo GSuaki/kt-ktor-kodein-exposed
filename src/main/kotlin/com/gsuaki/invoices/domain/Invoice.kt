@@ -4,7 +4,7 @@ import com.gsuaki.invoices.domain.InvoiceStatus.PENDING
 import java.time.LocalDateTime
 
 data class Invoice(
-  val id: Long,
+  val id: Long? = null,
   val ownerId: Long,
   val status: InvoiceStatus = PENDING,
   val createdAt: LocalDateTime = LocalDateTime.now(),
