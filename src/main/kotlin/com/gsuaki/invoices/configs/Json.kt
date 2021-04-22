@@ -14,10 +14,6 @@ import java.text.SimpleDateFormat
 
 object Json {
 
-  private val INSTANCE = ObjectMapper().apply {
-    setUpMapper()
-  }
-
   fun writeValueAsString(any: Any): String {
     return INSTANCE.writeValueAsString(any)
   }
@@ -30,7 +26,9 @@ object Json {
     return INSTANCE.readValue(data, type)
   }
 
-  fun ObjectMapper.setUpMapper() {
+  fun getInstance(): ObjectMapper = INSTANCE.copy()
+
+  private val INSTANCE = ObjectMapper().apply {
     disable(FAIL_ON_UNKNOWN_PROPERTIES)
     disable(WRITE_DATES_AS_TIMESTAMPS)
 

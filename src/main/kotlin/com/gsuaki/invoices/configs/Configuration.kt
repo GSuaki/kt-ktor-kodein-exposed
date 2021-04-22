@@ -1,6 +1,5 @@
 package com.gsuaki.invoices.configs
 
-import com.gsuaki.invoices.configs.Json.setUpMapper
 import com.gsuaki.invoices.configs.Profile.DEV
 import com.gsuaki.invoices.controllers.InvoicesController
 import com.gsuaki.invoices.invoices
@@ -10,16 +9,15 @@ import io.ktor.application.ApplicationEnvironment
 import io.ktor.application.install
 import io.ktor.features.ContentNegotiation
 import io.ktor.features.StatusPages
-import io.ktor.jackson.jackson
+import io.ktor.http.ContentType
+import io.ktor.jackson.JacksonConverter
 import io.ktor.routing.Routing
 import org.kodein.di.jxinject.jx
 import org.kodein.di.ktor.closestDI
 
 fun Application.contentNegotiation() {
   install(ContentNegotiation) {
-    jackson {
-      setUpMapper()
-    }
+    register(ContentType.Application.Json, JacksonConverter(Json.getInstance()))
   }
 }
 
