@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.sql.Database
 
-fun installMySQL(profile: String): Database {
+fun installMySQL(profile: Profile): Database {
   return HikariConfig("/hikari.${profile}.properties")
     .apply { schema = "invoices" }
     .let(::HikariDataSource)

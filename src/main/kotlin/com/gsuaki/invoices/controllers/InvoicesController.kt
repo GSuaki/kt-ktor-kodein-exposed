@@ -9,9 +9,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.util.getOrFail
+import javax.inject.Inject
 
 class InvoicesController(
-  private val service: InvoiceService
+  @Inject private val service: InvoiceService
 ) {
 
   suspend fun getAll(call: ApplicationCall) {

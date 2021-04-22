@@ -42,6 +42,8 @@ dependencies {
 
     // Kodain
     implementation "org.kodein.di:kodein-di:$kodein_version"
+    implementation "org.kodein.di:kodein-di-framework-ktor-server-jvm:$kodein_version"
+    implementation "org.kodein.di:kodein-di-jxinject-jvm:$kodein_version"
 
     // Arrow Kt
     implementation platform("io.arrow-kt:arrow-stack:$arrow_version")

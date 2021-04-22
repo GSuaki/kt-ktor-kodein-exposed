@@ -1,24 +1,19 @@
 package com.gsuaki.invoices.configs
 
 import com.gsuaki.invoices.configs.Json.setUpMapper
+import com.gsuaki.invoices.configs.Profile.DEV
 import com.gsuaki.invoices.controllers.InvoicesController
 import com.gsuaki.invoices.invoices
 import com.gsuaki.invoices.ping
 import io.ktor.application.Application
+import io.ktor.application.ApplicationEnvironment
 import io.ktor.application.install
 import io.ktor.features.ContentNegotiation
 import io.ktor.features.StatusPages
 import io.ktor.jackson.jackson
 import io.ktor.routing.Routing
-import org.kodein.di.instance
-import org.kodein.di.newInstance
-
-fun Application.configure(profile: String = "dev") {
-  contentNegotiation()
-  statusPage()
-  database(profile = profile)
-  routing(profile = profile)
-}
+import org.kodein.di.jxinject.jx
+import org.kodein.di.ktor.closestDI
 
 fun Application.contentNegotiation() {
   install(ContentNegotiation) {
@@ -28,13 +23,12 @@ fun Application.contentNegotiation() {
   }
 }
 
-fun Application.database(profile: String = "dev") {
+fun Application.database(profile: Profile) {
   installMySQL(profile = profile)
 }
 
-fun Application.routing(profile: String = "dev") {
-
-  val invoicesController by injection.newInstance { InvoicesController(instance()) }
+fun Application.routing(profile: Profile) {
+  val invoicesController = closestDI().jx.newInstance<InvoicesController>()
 
   install(Routing) {
     ping()
@@ -47,3 +41,8 @@ fun Application.statusPage() {
     errorHandler()
   }
 }
+
+fun ApplicationEnvironment.activeProfile(): Profile =
+  runCatching { config.property("ktor.deployment.environment").getString() }
+    .map { Profile.find(it) ?: DEV }
+    .getOrDefault(DEV)

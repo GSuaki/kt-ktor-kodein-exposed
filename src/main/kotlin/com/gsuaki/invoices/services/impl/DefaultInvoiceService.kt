@@ -3,18 +3,19 @@ package com.gsuaki.invoices.services.impl
 import arrow.core.Either
 import com.gsuaki.invoices.controllers.input.InvoiceInput
 import com.gsuaki.invoices.domain.Invoice
-import com.gsuaki.invoices.domain.InvoiceStatus.PENDING
-import com.gsuaki.invoices.repositories.InvoiceEntity
+import com.gsuaki.invoices.repositories.InvoiceRepository
 import com.gsuaki.invoices.services.InvoiceService
+import javax.inject.Inject
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.time.LocalDateTime
 
-class DefaultInvoiceService : InvoiceService {
+class DefaultInvoiceService(
+  @Inject private val repository: InvoiceRepository
+) : InvoiceService {
 
   override fun getAll(): List<Invoice> {
     return runCatching {
       transaction {
-        InvoiceEntity.all().map { it.toDomain() }
+        repository.findAll().map { it.toDomain() }
       }
     }
       .getOrElse { emptyList() }
@@ -23,7 +24,7 @@ class DefaultInvoiceService : InvoiceService {
   override fun getOne(id: Long, ownerId: Long): Either<Throwable, Invoice?> {
     return Either.catch {
       transaction {
-        InvoiceEntity.findByIdAndOwnerId(id, ownerId)?.toDomain()
+        repository.findByIdAndOwnerId(id, ownerId)?.toDomain()
       }
     }
   }
@@ -31,11 +32,7 @@ class DefaultInvoiceService : InvoiceService {
   override fun insert(input: InvoiceInput): Either<Throwable, Invoice> {
     return Either.catch {
       transaction {
-        InvoiceEntity.new {
-          ownerId = input.ownerId
-          status = PENDING
-          createdAt = LocalDateTime.now()
-        }
+        repository.save(Invoice(ownerId = input.ownerId))
           .toDomain()
       }
     }

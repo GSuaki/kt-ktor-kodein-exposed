@@ -5,6 +5,7 @@ import com.gsuaki.invoices.configs.Json
 import com.gsuaki.invoices.controllers.input.InvoiceInput
 import com.gsuaki.invoices.domain.Invoice
 import integration.BaseConfig
+import integration.MySqlExtension
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.TestApplicationEngine
@@ -12,12 +13,17 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
+import org.junit.jupiter.api.extension.ExtendWith
 import kotlin.random.Random
 
+@ExtendWith(MySqlExtension::class)
+@TestInstance(Lifecycle.PER_CLASS)
 class InvoiceTest : BaseConfig() {
 
   @Test
-  fun testCreateInvoice() = withTestApplication {
+  fun testCreateInvoice() = withFullContext {
     // given
     val payload = InvoiceInput(ownerId = 1239L)
 
@@ -39,7 +45,7 @@ class InvoiceTest : BaseConfig() {
 
   @Test
   fun `test getOne when ID is not present should return unprocessable`() =
-    withTestApplication {
+    withFullContext {
       // given
       val ownerId = Random(123).nextInt(from = 10, until = 1000)
       // when
@@ -53,7 +59,7 @@ class InvoiceTest : BaseConfig() {
 
   @Test
   fun `test getOne when ID is not found should return unprocessable`() =
-    withTestApplication {
+    withFullContext {
       //given
       val id = Random(123).nextInt(from = 10, until = 1000)
       val ownerId = Random(123).nextInt(from = 10, until = 1000)
@@ -68,12 +74,15 @@ class InvoiceTest : BaseConfig() {
 
   @Test
   fun `test getOne when ID found should return OK`() =
-    withTestApplication {
+    withFullContext {
       //given
       val invoice = createInvoice(this)
 
       // when
-      val call = handleRequest(HttpMethod.Get, "/invoices/${invoice.id}?owner.id=${invoice.ownerId}") { json() }
+      val call = handleRequest(
+        HttpMethod.Get,
+        "/invoices/${invoice.id}?owner.id=${invoice.ownerId}"
+      ) { json() }
 
       // then
       with(call) {
@@ -83,7 +92,7 @@ class InvoiceTest : BaseConfig() {
 
   @Test
   fun `test getAll when ID found should return OK`() =
-    withTestApplication {
+    withFullContext {
       //given
       createInvoice(this)
       createInvoice(this)
